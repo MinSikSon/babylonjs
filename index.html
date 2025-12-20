@@ -97,7 +97,7 @@
             createOrbitCircle(data.dist, scene);
     
             // 궤적 흔적 (TrailMesh)
-            new BABYLON.TrailMesh(data.name + "Trail", planet, scene, 0.5, 60, true); // diameter: 0.5, capacity: 60 (점의 개수)
+            new BABYLON.TrailMesh(data.name + "Trail", planet, scene, 0.5, 160, true); // diameter: 0.5, capacity: 60 (점의 개수)
     
             // 달 추가 (hasMoon 플래그가 true인 경우)
             if (data.hasMoon) {
@@ -119,7 +119,7 @@
                 createOrbitCircle(5, scene, moonOrbitPivot);
     
                 // 달의 궤적 흔적
-                new BABYLON.TrailMesh("MoonTrail", moon, scene, 0.2, 30, true); // 궤적 굵기, 길이
+                new BABYLON.TrailMesh("MoonTrail", moon, scene, 0.2, 130, true); // 궤적 굵기, 길이
     
                 // 달 애니메이션 정보 추가
                 planetMeshes.push({
