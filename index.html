@@ -46,144 +46,244 @@
        =============================== */
     
     const createScene = () => {
-        const scene = new BABYLON.Scene(engine);
-        scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
-    
-        /**** Set camera and light *****/
-        const camera = new BABYLON.ArcRotateCamera(
-            "camera", // 카메라 이름
-            // -Math.PI / 2, // 좌우 회전 각도
-            // BABYLON.Tools.ToRadians(200), // 좌우 회전 각도
-            BABYLON.Tools.ToRadians(0), // 좌우 회전 각도
-            // Math.PI / 2.5, // 위아래 각도
-            // BABYLON.Tools.ToRadians(240) / 2.5, // 위아래 각도
-            BABYLON.Tools.ToRadians(0) / 2.5, // 위아래 각도
-            200, // 카메라 거리
-            // new BABYLON.Vector3(0, 0, 0), // 바라보는 중심
-            new BABYLON.Vector3.Zero(), // 바라보는 중심
-            scene // 소속 Scene
-        );
-    
-        camera.attachControl(canvas, true); /// 마우스 / 터치 조작 활성화
-    
-        const lightBg = new BABYLON.HemisphericLight(
-            "light",
-            new BABYLON.Vector3(1, 1, 0),
-            // new BABYLON.Vector3.Zero(),
-            scene
-        );
-        const light = new BABYLON.PointLight(
-            "light",
-            // new BABYLON.Vector3(1, 1, 0),
-            new BABYLON.Vector3.Zero(),
-            // new BABYLON.Vector3(12, 0, 0),
-            scene
-        );
-    
-        light.intensity = 2; // 빛의 세기
-    
-        /**** Materials *****/
-        const mercuryOrbit = new BABYLON.TransformNode("mercuryOrbit", scene);
-        const venusOrbit = new BABYLON.TransformNode("venusOrbit", scene);
-        const earthOrbit = new BABYLON.TransformNode("earchOrbit", scene);
-        const moonOrbit = new BABYLON.TransformNode("moonOrbit", scene);
-    
-        const sunMat = new BABYLON.StandardMaterial("sunMat", scene);
-        {
-            sunMat.emissiveColor = new BABYLON.Color3(1, 0.8, 0.2);
-        }
-        const mercuryMat = new BABYLON.StandardMaterial("mercuryMat", scene);
-        {
-            mercuryMat.diffuseColor = new BABYLON.Color3(0.5, 0.9, 0.9);
-        }
-        const venusMat = new BABYLON.StandardMaterial("venusMat", scene);
-        {
-            venusMat.diffuseColor = new BABYLON.Color3(0.9, 0.5, 0.9);
-        }
-        const earthMat = new BABYLON.StandardMaterial("earthMat", scene);
-        {
-            earthMat.diffuseColor = new BABYLON.Color3(0.2, 0.4, 1);
-        }
-        const moonMat = new BABYLON.StandardMaterial("moonMat", scene);
-        {
-            moonMat.diffuseColor = new BABYLON.Color3(0.8, 0.8, 0.8);
-        }
-    
-        const sun = BABYLON.MeshBuilder.CreateSphere("sun", { diameter: 10 }, scene);
-        {
-            sun.material = sunMat;
-        }
-    
-        const diameterWeight = 1;
-        const positionWeight = 0.7;
-        const mercury = BABYLON.MeshBuilder.CreateSphere("mercury", { diameter: 1 * diameterWeight }, scene);
-        {
-            mercury.position.x = 33 * positionWeight;
-            mercury.parent = mercuryOrbit;
-            mercury.material = mercuryMat;
-        }
-        const venus = BABYLON.MeshBuilder.CreateSphere("venus", { diameter: 1 * diameterWeight }, scene);
-        {
-            venus.position.x = 61 * positionWeight;
-            venus.parent = venusOrbit;
-            venus.material = venusMat;
-        }
-        const earth = BABYLON.MeshBuilder.CreateSphere("earch", { diameter: 2 * diameterWeight }, scene);
-        {
-            earth.position.x = 84 * positionWeight;
-            earth.parent = earthOrbit;
-            earth.material = earthMat;
-    
-            moonOrbit.parent = earth;
-        }
-        const moon = BABYLON.MeshBuilder.CreateSphere("moon", { diameter: 0.4 }, scene);
-        {
-            moon.position.x = 2;
-            moon.parent = moonOrbit;
-            moon.material = moonMat;
-        }
-    
-        const rotationWeight = 1;
-        scene.onBeforeRenderObservable.add(() => {
-            mercuryOrbit.rotation.y += (0.004736 * rotationWeight);
-            // mercuryOrbit.rotation.z += (0.004736 * rotationWeight);
-            // venusOrbit.rotation.x += (0.003502 * rotationWeight);
-            venusOrbit.rotation.y += (0.003502 * rotationWeight);
-            earthOrbit.rotation.y += (0.002976 * rotationWeight);
-    
-            earth.rotation.y += (0.02 * rotationWeight);
-    
-            moonOrbit.rotation.x += (0.001 * rotationWeight);
-    
-        });
-    
-        // // SYZ 가이드 평면 생성 (X=0)
-        // const syzPlane = BABYLON.MeshBuilder.CreatePlane(
-        //     "syzPlane",
-        //     {
-        //         width: 1000,   // Z 방향 크기
-        //         height: 1000   // Y 방향 크기
-        //     },
-        //     scene
-        // );
-    
-        // // 기본 Plane은 XY 평면이므로 회전 필요
-        // syzPlane.rotation.y = Math.PI / 2;
-    
-        // // X = 0 위치에 고정
-        // syzPlane.position.x = 0;
-        // const syzMat = new BABYLON.StandardMaterial("syzMat", scene);
-    
-        // // syzMat.diffuseColor = new BABYLON.Color3(0, 1, 0); // 녹색
-        // syzMat.diffuseColor = new BABYLON.Color3(1, 0.8, 0.2); // 녹색
-        // syzMat.alpha = 0.2; // 투명도 (0~1)
-    
-        // syzMat.backFaceCulling = false; // 양면 보이게
-    
-        // syzPlane.material = syzMat;
-    
-        return scene;
-    }
+      const scene = new BABYLON.Scene(engine);
+      scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
+  
+      /**** Set camera and light *****/
+      const camera = new BABYLON.ArcRotateCamera(
+          "camera", // 카메라 이름
+          // -Math.PI / 2, // 좌우 회전 각도
+          // BABYLON.Tools.ToRadians(200), // 좌우 회전 각도
+          BABYLON.Tools.ToRadians(0), // 좌우 회전 각도
+          // Math.PI / 2.5, // 위아래 각도
+          // BABYLON.Tools.ToRadians(240) / 2.5, // 위아래 각도
+          BABYLON.Tools.ToRadians(200) / 2.5, // 위아래 각도
+          100, // 카메라 거리
+          // new BABYLON.Vector3(0, 0, 0), // 바라보는 중심
+          new BABYLON.Vector3.Zero(), // 바라보는 중심
+          scene // 소속 Scene
+      );
+  
+      camera.attachControl(canvas, true); /// 마우스 / 터치 조작 활성화
+  
+      const lightBg = new BABYLON.HemisphericLight(
+          "light",
+          new BABYLON.Vector3(1, 1, 0),
+          // new BABYLON.Vector3.Zero(),
+          scene
+      );
+      const light = new BABYLON.PointLight(
+          "light",
+          // new BABYLON.Vector3(1, 1, 0),
+          new BABYLON.Vector3.Zero(),
+          // new BABYLON.Vector3(12, 0, 0),
+          scene
+      );
+  
+      light.intensity = 2; // 빛의 세기
+  
+      /**** Materials *****/
+      const mercuryOrbit = new BABYLON.TransformNode("mercuryOrbit", scene);
+      const venusOrbit = new BABYLON.TransformNode("venusOrbit", scene);
+      const earthOrbit = new BABYLON.TransformNode("earchOrbit", scene);
+      const moonOrbit = new BABYLON.TransformNode("moonOrbit", scene);
+  
+      const sunMat = new BABYLON.StandardMaterial("sunMat", scene);
+      {
+          sunMat.emissiveColor = new BABYLON.Color3(1, 0.8, 0.2);
+      }
+      const mercuryMat = new BABYLON.StandardMaterial("mercuryMat", scene);
+      {
+          mercuryMat.diffuseColor = new BABYLON.Color3(0.5, 0.9, 0.9);
+      }
+      const venusMat = new BABYLON.StandardMaterial("venusMat", scene);
+      {
+          venusMat.diffuseColor = new BABYLON.Color3(0.9, 0.5, 0.9);
+      }
+      const earthMat = new BABYLON.StandardMaterial("earthMat", scene);
+      {
+          earthMat.diffuseColor = new BABYLON.Color3(0.2, 0.4, 1);
+      }
+      const moonMat = new BABYLON.StandardMaterial("moonMat", scene);
+      {
+          moonMat.diffuseColor = new BABYLON.Color3(0.8, 0.8, 0.8);
+      }
+  
+      const sun = BABYLON.MeshBuilder.CreateSphere("sun", { diameter: 10 }, scene);
+      {
+          sun.material = sunMat;
+      }
+  
+      const diameterWeight = 1;
+      const positionWeight = 0.7;
+      const mercury = BABYLON.MeshBuilder.CreateSphere("mercury", { diameter: 1 * diameterWeight }, scene);
+      {
+          mercury.position.x = 33 * positionWeight;
+          mercury.parent = mercuryOrbit;
+          mercury.material = mercuryMat;
+      }
+      const venus = BABYLON.MeshBuilder.CreateSphere("venus", { diameter: 1 * diameterWeight }, scene);
+      {
+          venus.position.x = 61 * positionWeight;
+          venus.parent = venusOrbit;
+          venus.material = venusMat;
+      }
+      const earth = BABYLON.MeshBuilder.CreateSphere("earch", { diameter: 2 * diameterWeight }, scene);
+      {
+          earth.position.x = 84 * positionWeight;
+          earth.parent = earthOrbit;
+          earth.material = earthMat;
+  
+          moonOrbit.parent = earth;
+      }
+      const moon = BABYLON.MeshBuilder.CreateSphere("moon", { diameter: 0.4 }, scene);
+      {
+          moon.position.x = 2;
+          moon.parent = moonOrbit;
+          moon.material = moonMat;
+      }
+  
+      // const orbitMat = new BABYLON.StandardMaterial("orbitMat", scene);
+      // {
+      //     orbitMat.emissiveColor = new BABYLON.Color3(1, 1, 1);
+      //     orbitMat.alpha = 0.4;
+      //     orbitMat.diffuseColor = BABYLON.Color3.Black();
+      // }
+  
+      const mercuryOrbitRing = BABYLON.MeshBuilder.CreateTorus(
+          "mercuryOrbitRing",
+          {
+              diameter: 2 * mercury.position.x,
+              thickness: 0.02,
+              tessellation: 128
+          },
+          scene
+      );
+      {
+          mercuryOrbitRing.rotation.y = Math.PI / 2;
+          // mercuryOrbitRing.material = orbitMat;
+          mercuryOrbitRing.isPickable = false;
+      }
+  
+      // const trailMat = new BABYLON.StandardMaterial("trailMat", scene);
+      // {
+      //     trailMat.emissiveColor = new BABYLON.Color3(1, 1, 1);
+      //     trailMat.alpha = 0.6;
+      // }
+      const mercuryTrail = new BABYLON.TrailMesh(
+          "mercuryTrail",
+          mercury,      // 추적 대상
+          scene,
+          0.1,          // trail 폭
+          120           // 길이 (프레임 수)
+      );
+      // {
+      //     mercuryTrail.material = trailMat;
+      // }
+  
+      const venusOrbitRing = BABYLON.MeshBuilder.CreateTorus(
+          "venusOrbitRing",
+          {
+              diameter: 2 * venus.position.x,
+              thickness: 0.02,
+              tessellation: 128
+          },
+          scene
+      );
+      {
+          venusOrbitRing.rotation.y = Math.PI / 2;
+          venusOrbitRing.isPickable = false;
+      }
+      const venusTrail = new BABYLON.TrailMesh(
+          "venusTrail",
+          venus,      // 추적 대상
+          scene,
+          0.1,          // trail 폭
+          120           // 길이 (프레임 수)
+      );
+  
+      const earthOrbitRing = BABYLON.MeshBuilder.CreateTorus(
+          "venusOrbitRing",
+          {
+              diameter: 2 * earth.position.x,
+              thickness: 0.02,
+              tessellation: 128
+          },
+          scene
+      );
+      {
+          earthOrbitRing.rotation.y = Math.PI / 2;
+          earthOrbitRing.isPickable = false;
+      }
+      const earthTrail = new BABYLON.TrailMesh(
+          "earthTrail",
+          earth,      // 추적 대상
+          scene,
+          0.1,          // trail 폭
+          120           // 길이 (프레임 수)
+      );
+  
+      const moonOrbitRing = BABYLON.MeshBuilder.CreateTorus(
+          "moonOrbitRing",
+          {
+              diameter: 2 * moon.position.x,
+              thickness: 0.02,
+              tessellation: 128
+          },
+          scene
+      );
+      {
+          moonOrbitRing.rotation.y = Math.PI / 2;
+          moonOrbitRing.isPickable = false;
+      }
+      const moonTrail = new BABYLON.TrailMesh(
+          "moonTrail",
+          moon,      // 추적 대상
+          scene,
+          0.1,          // trail 폭
+          120           // 길이 (프레임 수)
+      );
+  
+      const rotationWeight = 1;
+      scene.onBeforeRenderObservable.add(() => {
+          mercuryOrbit.rotation.y += (0.004736 * rotationWeight);
+          // mercuryOrbit.rotation.z += (0.004736 * rotationWeight);
+          // venusOrbit.rotation.x += (0.003502 * rotationWeight);
+          venusOrbit.rotation.y += (0.003502 * rotationWeight);
+          earthOrbit.rotation.y += (0.002976 * rotationWeight);
+  
+          earth.rotation.y += (0.02 * rotationWeight);
+  
+          moonOrbit.rotation.x += (0.001 * rotationWeight);
+      });
+  
+      // // SYZ 가이드 평면 생성 (X=0)
+      // const syzPlane = BABYLON.MeshBuilder.CreatePlane(
+      //     "syzPlane",
+      //     {
+      //         width: 1000,   // Z 방향 크기
+      //         height: 1000   // Y 방향 크기
+      //     },
+      //     scene
+      // );
+  
+      // // 기본 Plane은 XY 평면이므로 회전 필요
+      // syzPlane.rotation.y = Math.PI / 2;
+  
+      // // X = 0 위치에 고정
+      // syzPlane.position.x = 0;
+      // const syzMat = new BABYLON.StandardMaterial("syzMat", scene);
+  
+      // // syzMat.diffuseColor = new BABYLON.Color3(0, 1, 0); // 녹색
+      // syzMat.diffuseColor = new BABYLON.Color3(1, 0.8, 0.2); // 녹색
+      // syzMat.alpha = 0.2; // 투명도 (0~1)
+  
+      // syzMat.backFaceCulling = false; // 양면 보이게
+  
+      // syzPlane.material = syzMat;
+  
+      return scene;
+  }
 
     /* ===============================
        11️⃣ Scene 생성
