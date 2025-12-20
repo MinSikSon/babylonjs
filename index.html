@@ -44,135 +44,136 @@
     /* ===============================
        2️⃣ Scene 생성 함수
        =============================== */
-    var createScene = function () {
-      var scene = new BABYLON.Scene(engine);
-      scene.clearColor = new BABYLON.Color3(0.01, 0.01, 0.02);
-  
-      // 1. 카메라 설정 (먼 거리까지 볼 수 있도록 maxZ 확장)
-      var camera = new BABYLON.ArcRotateCamera("camera", -Math.PI/2, Math.PI/3, 800, BABYLON.Vector3.Zero(), scene);
-      camera.attachControl(canvas, true);
-      camera.maxZ = 100000;
-  
-      // 2. 조명 및 글로우 효과
-      var light = new BABYLON.PointLight("sunLight", BABYLON.Vector3.Zero(), scene);
-      light.intensity = 2;
-      var gl = new BABYLON.GlowLayer("glow", scene);
-      gl.intensity = 0.6;
-  
-      // 3. 확장된 행성 데이터 (천/해/명 포함)
-      const planetsData = [
-          { name: "Mercury", dist: 50,  size: 0.5,  rev: 88,    color: new BABYLON.Color3(0.6, 0.6, 0.6) },
-          { name: "Venus",   dist: 80,  size: 0.9,  rev: 224,   color: new BABYLON.Color3(0.9, 0.8, 0.2) },
-          { name: "Earth",   dist: 120, size: 1.0,  rev: 365,   color: new BABYLON.Color3(0.2, 0.4, 1.0), hasMoon: true },
-          { name: "Mars",    dist: 170, size: 0.6,  rev: 687,   color: new BABYLON.Color3(0.9, 0.3, 0.2) },
-          { name: "Jupiter", dist: 280, size: 11.2, rev: 4333,  color: new BABYLON.Color3(0.8, 0.7, 0.5), hasRing: true, ringColor: new BABYLON.Color3(0.5, 0.4, 0.3) },
-          { name: "Saturn",  dist: 400, size: 9.4,  rev: 10759, color: new BABYLON.Color3(0.9, 0.8, 0.6), hasRing: true, ringColor: new BABYLON.Color3(0.7, 0.6, 0.5) },
-          { name: "Uranus",  dist: 520, size: 4.0,  rev: 30687, color: new BABYLON.Color3(0.6, 0.9, 0.9), hasRing: true, ringColor: new BABYLON.Color3(0.4, 0.5, 0.6) },
-          { name: "Neptune", dist: 630, size: 3.8,  rev: 60190, color: new BABYLON.Color3(0.3, 0.3, 0.9) },
-          { name: "Pluto",   dist: 750, size: 0.3,  rev: 90560, color: new BABYLON.Color3(0.5, 0.4, 0.3), tilt: BABYLON.Tools.ToRadians(17) }
-      ];
-  
-      // 태양 생성
-      var sun = BABYLON.MeshBuilder.CreateSphere("sun", { diameter: 30 }, scene);
-      var sunMat = new BABYLON.StandardMaterial("sunMat", scene);
-      sunMat.emissiveColor = new BABYLON.Color3(1, 0.4, 0);
-      sun.material = sunMat;
-  
-      var planetElements = [];
-  
-      // 4. 행성/고리/궤적 생성 루프
-      planetsData.forEach((data) => {
-          var orbitPivot = new BABYLON.TransformNode(data.name + "Pivot");
-          if (data.tilt) orbitPivot.rotation.z = data.tilt;
-  
-          var planet = BABYLON.MeshBuilder.CreateSphere(data.name, { diameter: data.size * 2 }, scene);
-          planet.parent = orbitPivot;
-          planet.position.x = data.dist;
-  
-          var mat = new BABYLON.StandardMaterial(data.name + "Mat", scene);
-          mat.diffuseColor = data.color;
-          planet.material = mat;
-  
-          // 궤도 라인
-          createOrbitCircle(data.dist, scene, orbitPivot);
-  
-          // 궤적 흔적
-          new BABYLON.TrailMesh(data.name + "Trail", planet, scene, 0.3, 300, true);
-  
-          // 고리 추가 (토성, 목성, 천왕성 등)
-          if (data.hasRing) {
-              var ring = BABYLON.MeshBuilder.CreateTorus(data.name + "Ring", {
-                  diameter: data.size * 4.5,
-                  thickness: 0.2,
-                  tessellation: 64
-              }, scene);
-              ring.parent = planet;
-              ring.scaling.y = 0.05; // 얇게 만듦
-              var ringMat = new BABYLON.StandardMaterial(data.name + "RingMat", scene);
-              ringMat.diffuseColor = data.ringColor;
-              ringMat.alpha = 0.6;
-              ring.material = ringMat;
-          }
-  
-          // 지구의 달
-          if (data.hasMoon) {
-              var moonPivot = new BABYLON.TransformNode("MoonPivot");
-              moonPivot.parent = orbitPivot;
-              moonPivot.position.x = data.dist;
-              var moon = BABYLON.MeshBuilder.CreateSphere("Moon", { diameter: 0.6 }, scene);
-              moon.parent = moonPivot;
-              moon.position.x = 4;
-              planetElements.push({ pivot: moonPivot, revSpeed: 1 / 27 });
-          }
-  
-          planetElements.push({ pivot: orbitPivot, revSpeed: 1 / data.rev });
-      });
-  
-      // 5. 카이퍼 벨트 (Kuiper Belt) 구현 - 수천 개의 조각들
-      const createKuiperBelt = () => {
-          const count = 1500;
-          const points = [];
-          for (let i = 0; i < count; i++) {
-              const angle = Math.random() * Math.PI * 2;
-              const radius = 800 + Math.random() * 100; // 명왕성 궤도 밖
-              const x = Math.cos(angle) * radius;
-              const z = Math.sin(angle) * radius;
-              const y = (Math.random() - 0.5) * 20; // 약간의 두께감
-              points.push(new BABYLON.Vector3(x, y, z));
-          }
-          
-          const pcs = new BABYLON.PointsCloudSystem("pcs", 2, scene);
-          pcs.addPoints(count, (particle, i) => {
-              particle.position = points[i];
-              particle.color = new BABYLON.Color3(0.4, 0.4, 0.45);
-          });
-          pcs.buildMeshAsync();
-      };
-      createKuiperBelt();
-  
-      function createOrbitCircle(radius, scene, parent) {
-          const points = [];
-          for (let i = 0; i <= 360; i++) {
-              const angle = BABYLON.Tools.ToRadians(i);
-              points.push(new BABYLON.Vector3(Math.cos(angle) * radius, 0, Math.sin(angle) * radius));
-          }
-          const lines = BABYLON.MeshBuilder.CreateLines("orbit", { points }, scene);
-          lines.color = new BABYLON.Color3(0.1, 0.1, 0.1);
-          lines.parent = parent;
-      }
-  
-      // 6. 애니메이션 루프
-      // let timeScale = 5.0; // 외행성들이 워낙 느려 속도를 높였습니다.
-      let timeScale = 0.2; // 외행성들이 워낙 느려 속도를 높였습니다.
-      scene.onBeforeRenderObservable.add(() => {
-          const deltaTime = scene.getEngine().getDeltaTime() * 0.1 * timeScale;
-          planetElements.forEach(p => {
-              p.pivot.rotation.y += p.revSpeed * deltaTime;
-          });
-      });
-  
-      return scene;
-  };
+var createScene = function () {
+    var scene = new BABYLON.Scene(engine);
+    scene.clearColor = new BABYLON.Color4(0.01, 0.01, 0.02, 1);
+
+    // 1. 카메라 설정 (모바일 터치 최적화 및 가시거리 확장)
+    var camera = new BABYLON.ArcRotateCamera("camera", -Math.PI/2, Math.PI/2.5, 800, BABYLON.Vector3.Zero(), scene);
+    camera.attachControl(canvas, true);
+    camera.maxZ = 120000;
+    camera.wheelPrecision = 10; // 줌 속도 조절
+
+    // 2. 조명 및 모바일 대응 글로우 효과
+    var light = new BABYLON.PointLight("sunLight", BABYLON.Vector3.Zero(), scene);
+    light.intensity = 2.5;
+
+    var gl = new BABYLON.GlowLayer("glow", scene, {
+        mainTextureFixedSize: 256, // 모바일 깨짐 방지
+        blurKernelSize: 32
+    });
+    gl.intensity = 0.5;
+
+    // 3. 행성 및 위성 종합 데이터 (단위: 상대값)
+    const planetsData = [
+        { name: "Mercury", dist: 60, size: 0.8, rev: 88, color: new BABYLON.Color3(0.6, 0.6, 0.6), moons: [] },
+        { name: "Venus", dist: 100, size: 1.8, rev: 224, color: new BABYLON.Color3(0.9, 0.7, 0.4), moons: [] },
+        { name: "Earth", dist: 150, size: 2.0, rev: 365, color: new BABYLON.Color3(0.2, 0.5, 1.0), moons: [{ name: "Moon", dist: 6, size: 0.5, rev: 27 }] },
+        { name: "Mars", dist: 210, size: 1.2, rev: 687, color: new BABYLON.Color3(0.9, 0.4, 0.3), moons: [{ name: "Phobos", dist: 3, size: 0.3, rev: 5 }, { name: "Deimos", dist: 5, size: 0.2, rev: 12 }] },
+        { name: "Jupiter", dist: 350, size: 12.0, rev: 4333, color: new BABYLON.Color3(0.8, 0.6, 0.4), ring: { color: new BABYLON.Color3(0.4, 0.3, 0.2), alpha: 0.2 }, moons: [{ name: "Io", dist: 18, size: 0.6, rev: 40 }, { name: "Europa", dist: 22, size: 0.5, rev: 80 }, { name: "Ganymede", dist: 26, size: 0.8, rev: 150 }] },
+        { name: "Saturn", dist: 520, size: 10.0, rev: 10759, color: new BABYLON.Color3(0.9, 0.8, 0.5), ring: { color: new BABYLON.Color3(0.7, 0.6, 0.4), alpha: 0.7 }, moons: [{ name: "Titan", dist: 25, size: 1.2, rev: 300 }] },
+        { name: "Uranus", dist: 680, size: 5.0, rev: 30687, color: new BABYLON.Color3(0.6, 0.9, 0.9), ring: { color: new BABYLON.Color3(0.4, 0.5, 0.6), alpha: 0.4, isVertical: true }, moons: [{ name: "Titania", dist: 12, size: 0.5, rev: 200 }] },
+        { name: "Neptune", dist: 820, size: 4.8, rev: 60190, color: new BABYLON.Color3(0.3, 0.3, 0.9), moons: [{ name: "Triton", dist: 10, size: 0.6, rev: 150 }] },
+        { name: "Pluto", dist: 950, size: 0.4, rev: 90560, color: new BABYLON.Color3(0.5, 0.4, 0.3), tilt: BABYLON.Tools.ToRadians(17), moons: [] }
+    ];
+
+    // 4. 태양 (중심점)
+    var sun = BABYLON.MeshBuilder.CreateSphere("sun", { diameter: 35 }, scene);
+    var sunMat = new BABYLON.StandardMaterial("sunMat", scene);
+    sunMat.emissiveColor = new BABYLON.Color3(1, 0.5, 0); 
+    sun.material = sunMat;
+
+    var animationElements = [];
+
+    // 5. 생성 루프
+    planetsData.forEach((data) => {
+        // 공전 피벗 (행성용)
+        var planetPivot = new BABYLON.TransformNode(data.name + "Pivot");
+        if (data.tilt) planetPivot.rotation.z = data.tilt;
+
+        // 행성 본체
+        var planet = BABYLON.MeshBuilder.CreateSphere(data.name, { diameter: data.size * 2 }, scene);
+        planet.parent = planetPivot;
+        planet.position.x = data.dist;
+
+        var mat = new BABYLON.StandardMaterial(data.name + "Mat", scene);
+        mat.diffuseColor = data.color;
+        mat.specularColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+        planet.material = mat;
+
+        // 공전 궤도 가이드라인
+        createOrbitCircle(data.dist, scene, planetPivot);
+        // 공전 궤적 (Trail)
+        new BABYLON.TrailMesh(data.name + "Trail", planet, scene, 0.4, 120, true);
+
+        // 고리 생성
+        if (data.ring) {
+            var ring = BABYLON.MeshBuilder.CreateTorus(data.name + "Ring", { diameter: data.size * 5, thickness: data.size * 0.8 }, scene);
+            ring.parent = planet;
+            ring.scaling.y = 0.02;
+            if (data.ring.isVertical) ring.rotation.z = Math.PI / 2; // 천왕성 누운 고리
+            var ringMat = new BABYLON.StandardMaterial(data.name + "RingMat", scene);
+            ringMat.diffuseColor = data.ring.color;
+            ringMat.alpha = data.ring.alpha;
+            ringMat.backFaceCulling = false;
+            ring.material = ringMat;
+        }
+
+        // 위성 생성 루프
+        data.moons.forEach(m => {
+            var moonPivot = new BABYLON.TransformNode(m.name + "Pivot");
+            moonPivot.parent = planetPivot;
+            moonPivot.position.x = data.dist; // 행성 위치에 위성 피벗 고정
+
+            var moon = BABYLON.MeshBuilder.CreateSphere(m.name, { diameter: m.size * 2 }, scene);
+            moon.parent = moonPivot;
+            moon.position.x = m.dist;
+
+            var moonMat = new BABYLON.StandardMaterial(m.name + "Mat", scene);
+            moonMat.diffuseColor = new BABYLON.Color3(0.7, 0.7, 0.7);
+            moon.material = moonMat;
+
+            animationElements.push({ pivot: moonPivot, speed: 1 / m.rev });
+        });
+
+        animationElements.push({ pivot: planetPivot, speed: 1 / data.rev });
+    });
+
+    // 6. 카이퍼 벨트 (최적화 렌더링)
+    const createKuiperBelt = () => {
+        const pcs = new BABYLON.PointsCloudSystem("pcs", 2, scene);
+        pcs.addPoints(2000, (particle) => {
+            const angle = Math.random() * Math.PI * 2;
+            const radius = 1050 + Math.random() * 150;
+            particle.position = new BABYLON.Vector3(Math.cos(angle) * radius, (Math.random() - 0.5) * 30, Math.sin(angle) * radius);
+            particle.color = new BABYLON.Color4(0.5, 0.5, 0.6, 0.8);
+        });
+        pcs.buildMeshAsync();
+    };
+    createKuiperBelt();
+
+    function createOrbitCircle(radius, scene, parent) {
+        const points = [];
+        for (let i = 0; i <= 360; i++) {
+            const a = BABYLON.Tools.ToRadians(i);
+            points.push(new BABYLON.Vector3(Math.cos(a) * radius, 0, Math.sin(a) * radius));
+        }
+        const lines = BABYLON.MeshBuilder.CreateLines("orb", { points }, scene);
+        lines.color = new BABYLON.Color3(0.1, 0.1, 0.15);
+        lines.parent = parent;
+    }
+
+    // 7. 통합 애니메이션 엔진
+    let timeScale = 4.0; 
+    scene.onBeforeRenderObservable.add(() => {
+        const delta = scene.getEngine().getDeltaTime() * 0.1 * timeScale;
+        animationElements.forEach(el => {
+            el.pivot.rotation.y += el.speed * delta;
+        });
+    });
+
+    return scene;
+};
 
     /* ===============================
        11️⃣ Scene 생성
