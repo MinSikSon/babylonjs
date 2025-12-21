@@ -160,7 +160,7 @@
             }
             
             // PointsCloudSystem: 수많은 점(입자)을 하나의 메쉬로 그려 성능을 최적화함
-            const pcs = new BABYLON.PointsCloudSystem("pcs", 1, scene);
+            const pcs = new BABYLON.PointsCloudSystem("pcs", 0.01, scene);
             pcs.addPoints(count, (particle, i) => {
                 particle.position = points[i];
                 particle.color = new BABYLON.Color3(0.4, 0.4, 0.45); // 차가운 돌 색상
