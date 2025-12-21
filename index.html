@@ -148,24 +148,49 @@
     
         // 7. 카이퍼 벨트 (태양계 외곽 소행성 지대)
         const createKuiperBelt = () => {
-            const count = 100;
-            const points = [];
-            for (let i = 0; i < count; i++) {
-                const angle = Math.random() * Math.PI * 2;
-                const radius = 800 + Math.random() * 100; // 명왕성 너머 대역
-                const x = Math.cos(angle) * radius;
-                const z = Math.sin(angle) * radius;
-                const y = (Math.random() - 0.5) * 2; // 상하로 약간 퍼지게
-                points.push(new BABYLON.Vector3(x, y, z));
-            }
-            
-            // PointsCloudSystem: 수많은 점(입자)을 하나의 메쉬로 그려 성능을 최적화함
-            const pcs = new BABYLON.PointsCloudSystem("pcs", 0.01, scene);
-            pcs.addPoints(count, (particle, i) => {
-                particle.position = points[i];
-                particle.color = new BABYLON.Color3(0.4, 0.4, 0.45); // 차가운 돌 색상
-            });
-            pcs.buildMeshAsync();
+            const count = 800;
+            const sps = new BABYLON.SolidParticleSystem("sps", scene);
+    
+            // 입자 모양 (매우 작은 상자)
+            const sphere = BABYLON.MeshBuilder.CreateBox("b", { size: 0.5 }, scene);
+            sps.addShape(sphere, count);
+            sphere.dispose();
+    
+            sps.initParticles = () => {
+                for (let p = 0; p < sps.nbParticles; p++) {
+                    const particle = sps.particles[p];
+                    const angle = Math.random() * Math.PI * 2;
+                    const radius = 850 + Math.random() * 120;
+    
+                    particle.position.x = Math.cos(angle) * radius;
+                    particle.position.z = Math.sin(angle) * radius;
+                    particle.position.y = (Math.random() - 0.5) * 15;
+    
+                    const s = Math.random() * 0.8 + 0.2;
+                    particle.scaling = new BABYLON.Vector3(s, s, s);
+    
+                    // [색상 변경 포인트] 푸른색(Blue)과 보라색(Purple) 사이의 랜덤 색상 부여
+                    // R: 0.3~0.5 (보라색 기운), G: 0.2~0.3 (어두운 느낌), B: 0.7~1.0 (강한 푸른빛)
+                    particle.color = new BABYLON.Color4(
+                        0.3 + Math.random() * 0.2,
+                        0.2 + Math.random() * 0.1,
+                        0.7 + Math.random() * 0.3,
+                        1.0
+                    );
+                }
+            };
+    
+            const mesh = sps.buildMesh();
+            sps.initParticles();
+            sps.setParticles();
+    
+            const mat = new BABYLON.StandardMaterial("kMat", scene);
+            mat.disableLighting = true;
+            // 발광색(Emissive)을 살짝 주어 어두운 곳에서도 보랏빛 안개처럼 보이게 합니다.
+            mat.emissiveColor = new BABYLON.Color3(0.2, 0.1, 0.4);
+            mesh.material = mat;
+    
+            mesh.freezeWorldMatrix();
         };
         createKuiperBelt();
     
