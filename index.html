@@ -148,33 +148,37 @@
     
         // 7. 카이퍼 벨트 (태양계 외곽 소행성 지대)
         const createKuiperBelt = () => {
-            const count = 800;
+            // 1. 입자 개수 조절 (가시성을 위해 600~800개가 적당함)
+            const count = 700; 
             const sps = new BABYLON.SolidParticleSystem("sps", scene);
-    
-            // 입자 모양 (매우 작은 상자)
-            const sphere = BABYLON.MeshBuilder.CreateBox("b", { size: 0.5 }, scene);
-            sps.addShape(sphere, count);
-            sphere.dispose();
+            
+            // 2. 입자 모양을 약간 더 크게 (size를 0.5에서 1.2로 상향)
+            const asteroidBox = BABYLON.MeshBuilder.CreateBox("b", { size: 1.2 }, scene);
+            sps.addShape(asteroidBox, count);
+            asteroidBox.dispose(); 
     
             sps.initParticles = () => {
                 for (let p = 0; p < sps.nbParticles; p++) {
                     const particle = sps.particles[p];
                     const angle = Math.random() * Math.PI * 2;
-                    const radius = 850 + Math.random() * 120;
-    
+                    // 분포 범위를 약간 더 넓혀 웅장하게 표현
+                    const radius = 900 + Math.random() * 250; 
+                    
                     particle.position.x = Math.cos(angle) * radius;
                     particle.position.z = Math.sin(angle) * radius;
-                    particle.position.y = (Math.random() - 0.5) * 15;
-    
-                    const s = Math.random() * 0.8 + 0.2;
+                    // 두께감을 주어 띠(Belt) 형태 강조
+                    particle.position.y = (Math.random() - 0.5) * 40; 
+                    
+                    // 크기 변화폭을 키워 불규칙한 느낌 강조
+                    const s = Math.random() * 1.5 + 0.5;
                     particle.scaling = new BABYLON.Vector3(s, s, s);
-    
-                    // [색상 변경 포인트] 푸른색(Blue)과 보라색(Purple) 사이의 랜덤 색상 부여
-                    // R: 0.3~0.5 (보라색 기운), G: 0.2~0.3 (어두운 느낌), B: 0.7~1.0 (강한 푸른빛)
+                    
+                    // [색상 변경] 더 밝고 선명한 네온 퍼플 & 사이안 블루
+                    // 시인성을 위해 채도와 명도를 대폭 높였습니다.
                     particle.color = new BABYLON.Color4(
-                        0.3 + Math.random() * 0.2,
-                        0.2 + Math.random() * 0.1,
-                        0.7 + Math.random() * 0.3,
+                        0.6 + Math.random() * 0.4, // Red (보라색 기운)
+                        0.3 + Math.random() * 0.3, // Green
+                        0.9 + Math.random() * 0.1, // Blue (강한 푸른색)
                         1.0
                     );
                 }
@@ -182,14 +186,19 @@
     
             const mesh = sps.buildMesh();
             sps.initParticles();
-            sps.setParticles();
+            sps.setParticles(); 
     
+            // 3. 재질 설정 - 가시성의 핵심
             const mat = new BABYLON.StandardMaterial("kMat", scene);
-            mat.disableLighting = true;
-            // 발광색(Emissive)을 살짝 주어 어두운 곳에서도 보랏빛 안개처럼 보이게 합니다.
-            mat.emissiveColor = new BABYLON.Color3(0.2, 0.1, 0.4);
+            mat.disableLighting = true; // 외부 조명 무시 (어두워지는 것 방지)
+            
+            // 발광색을 밝은 보라색으로 설정하여 화면에서 "툭" 튀어나오게 함
+            mat.emissiveColor = new BABYLON.Color3(0.5, 0.2, 0.8); 
+            
+            // 만약 GlowLayer가 있다면 이 메쉬는 아주 예쁘게 빛날 것입니다.
             mesh.material = mat;
-    
+            
+            // 성능 최적화
             mesh.freezeWorldMatrix();
         };
         createKuiperBelt();
